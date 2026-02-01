@@ -16,9 +16,8 @@ on:
         required: true
         type: boolean
       port_context:
-        required: false
-        type: string
         description: "Port metadata (ignored by this workflow)"
+        required: false
 
 jobs:
   create:
@@ -36,7 +35,7 @@ jobs:
           payload="$(jq -n \
             --arg name "$NAME" \
             --arg description "$DESC" \
-            --argjson private "$( [ "$PRIVATE" = "true" ] && echo true || echo false )"
+            --argjson private "$( [ "$PRIVATE" = "true" ] && echo true || echo false )" \
             '{name:$name, description:$description, private:$private}')"
 
           curl -i -sS -X POST \
