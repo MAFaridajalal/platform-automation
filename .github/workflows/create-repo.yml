@@ -15,6 +15,10 @@ on:
         description: "true for private, false for public"
         required: true
         type: boolean
+      port_context:
+        required: false
+        type: string
+        description: "Port metadata (ignored by this workflow)"
 
 jobs:
   create:
