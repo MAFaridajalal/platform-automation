@@ -1,0 +1,43 @@
+name: Create repo (from Port)
+
+on:
+  workflow_dispatch:
+    inputs:
+      org:
+        description: "GitHub org"
+        required: true
+        type: string
+      repo_name:
+        description: "New repo name"
+        required: true
+        type: string
+      description:
+        description: "Repo description"
+        required: false
+        type: string
+      private:
+        description: "true for private, false for public"
+        required: true
+        type: boolean
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create repository in org
+        env:
+          ORG: ${{ inputs.org }}
+          NAME: ${{ inputs.repo_name }}
+          DESC: ${{ inputs.description }}
+          PRIVATE: ${{ inputs.private }}
+          GH_TOKEN: ${{ secrets.REPO_CREATOR_TOKEN }}
+        run: |
+          curl -sS -X POST \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/orgs/${ORG}/repos \
+            -d "$(jq -n \
+              --arg name "$NAME" \
+              --arg description "$DESC" \
+              --argjson private "$PRIVATE" \
+              '{name:$name, description:$description, private:$private}')"
