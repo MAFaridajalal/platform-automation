@@ -32,7 +32,7 @@ jobs:
           payload="$(jq -n \
             --arg name "$NAME" \
             --arg description "$DESC" \
-            --argjson private "$PRIVATE" \
+            --argjson private "$( [ "$PRIVATE" = "true" ] && echo true || echo false )"
             '{name:$name, description:$description, private:$private}')"
 
           curl -i -sS -X POST \
