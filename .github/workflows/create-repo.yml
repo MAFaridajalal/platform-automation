@@ -16,13 +16,23 @@ on:
         required: true
         type: boolean
       port_context:
-        description: "Port metadata (ignored by this workflow)"
+        description: "Port metadata (JSON string containing runId)"
         required: false
 
 jobs:
   create:
     runs-on: ubuntu-latest
     steps:
+      - name: Report start to Port
+        if: ${{ inputs.port_context != '' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          logMessage: "Started repository creation workflow"
+
       - name: Create repository (personal)
         env:
           NAME: ${{ inputs.repo_name }}
@@ -43,3 +53,25 @@ jobs:
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/user/repos \
             -d "$payload"
+
+      - name: Report success to Port
+        if: ${{ success() && inputs.port_context != '' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: SUCCESS
+          logMessage: "Repository created successfully"
+
+      - name: Report failure to Port
+        if: ${{ failure() && inputs.port_context != '' }}
+        uses: port-labs/port-github-action@v1
+        with:
+          clientId: ${{ secrets.PORT_CLIENT_ID }}
+          clientSecret: ${{ secrets.PORT_CLIENT_SECRET }}
+          operation: PATCH_RUN
+          runId: ${{ fromJson(inputs.port_context).runId }}
+          status: FAILURE
+          logMessage: "Repository creation failed"
